@@ -56,8 +56,9 @@ if (process.env.SERVICE_VERSION === 'v2') {
   //   var MongoClient = require('mongodb').MongoClient
   //   var url = process.env.MONGO_DB_URL
   // }
-  var DynamoClient = require('aws-sdk').DynamoDB()
 }
+var AWS = require("aws-sdk");
+var dynamoClient = new AWS.DynamoDB({ region: "us-east-1" })
 
 dispatcher.onPost(/^\/ratings\/[0-9]*/, function (req, res) {
   var productIdStr = req.url.split('/').pop()
@@ -94,7 +95,7 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
   if (Number.isNaN(productId)) {
     res.writeHead(400, {'Content-type': 'application/json'})
     res.end(JSON.stringify({error: 'please provide numeric product ID'}))
-  } else if (process.env.SERVICE_VERSION === 'v2') {
+  } else {
     var firstRating = 0
     var secondRating = 0
 
@@ -121,37 +122,6 @@ dispatcher.onGet(/^\/ratings\/[0-9]*/, function (req, res) {
         res.end(JSON.stringify(result))
       }
     })
-  } else {
-      if (process.env.SERVICE_VERSION === 'v-faulty') {
-        // in half of the cases return error,
-        // in another half proceed as usual
-        var random = Math.random(); // returns [0,1]
-        if (random <= 0.5) {
-          getLocalReviewsServiceUnavailable(res)
-        } else {
-          getLocalReviewsSuccessful(res, productId)
-        }
-      }
-      else if (process.env.SERVICE_VERSION === 'v-delayed') {
-        // in half of the cases delay for 7 seconds,
-        // in another half proceed as usual
-        var random = Math.random(); // returns [0,1]
-        if (random <= 0.5) {
-          setTimeout(getLocalReviewsSuccessful, 7000, res, productId)
-        } else {
-          getLocalReviewsSuccessful(res, productId)
-        }
-      }
-      else if (process.env.SERVICE_VERSION === 'v-unavailable' || process.env.SERVICE_VERSION === 'v-unhealthy') {
-          if (unavailable) {
-              getLocalReviewsServiceUnavailable(res)
-          } else {
-              getLocalReviewsSuccessful(res, productId)
-          }
-      }
-      else {
-        getLocalReviewsSuccessful(res, productId)
-      }
   }
 })
 

@@ -12,7 +12,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM node:23.11-slim
+FROM node:18.19
 
 #hadolint ignore=DL3008
 RUN apt-get update \
@@ -26,6 +26,7 @@ ENV SERVICE_VERSION=${service_version:-v1}
 COPY package.json /opt/microservices/
 COPY ratings.js /opt/microservices/
 WORKDIR /opt/microservices
+RUN npm install aws-sdk@2
 RUN npm install
 
 EXPOSE 9080

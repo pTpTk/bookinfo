@@ -32,26 +32,31 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ratings-v1
+  name: ratings-v2
   labels:
     app: ratings
-    version: v1
+    version: v2
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: ratings
-      version: v1
+      version: v2
   template:
     metadata:
       labels:
         app: ratings
-        version: v1
+        version: v2
     spec:
       containers:
       - name: ratings
-        image: docker.io/istio/examples-bookinfo-ratings-v1:1.20.3
-        imagePullPolicy: IfNotPresent
+        image: docker.io/ptptk/examples-bookinfo-ratings-v2:latest
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: 1
+          limits:
+            cpu: 1
         ports:
         - containerPort: 9080
 ---

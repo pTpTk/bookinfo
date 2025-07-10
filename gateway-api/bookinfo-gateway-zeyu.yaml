@@ -1,0 +1,63 @@
+# 1. Modified Service
+# The service is now of type NodePort. It no longer defines the load balancer.
+# Its job is to group the pods and expose them internally for the Ingress to find.
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookinfo-svc-zeyu
+  # No load balancer annotations are needed here anymore
+spec:
+  # Change type from LoadBalancer to NodePort
+  type: NodePort
+  selector:
+    app: productpage
+  ports:
+    - name: http
+      # This port is the internal port the service listens on.
+      port: 8000
+      # This is the port your container is listening on.
+      targetPort: 9080
+      protocol: TCP
+
+---
+# 2. New Ingress Resource
+# This resource instructs the AWS Load Balancer Controller to create an ALB.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bookinfo-ingress-zeyu
+  annotations:
+    # Specify that this Ingress should be managed by the AWS Load Balancer Controller
+    kubernetes.io/ingress.class: alb
+    
+    # --- Core ALB Configuration ---
+    # Set the scheme to 'internet-facing' for a public ALB
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    
+    # Set the target type to 'ip' to route traffic directly to pod IPs.
+    alb.ingress.kubernetes.io/target-type: ip
+    
+    # --- Listener Configuration ---
+    # Define which ports the ALB should listen on. Here, it's HTTP on port 80.
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    
+    # --- Health Check Configuration (Optional but Recommended) ---
+    # You can customize the health checks the ALB performs on your pods.
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: '9080' # Health check on the container's port
+    alb.ingress.kubernetes.io/healthcheck-path: /health # Change to your app's health check endpoint
+    alb.ingress.kubernetes.io/success-codes: '200' # The HTTP status code indicating success
+spec:
+  rules:
+    # This rule says to send all HTTP traffic to our service.
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                # This must match the name of your Service object above
+                name: ratings
+                port:
+                  # This must match the 'port' defined in your Service object above
+                  number: 9080

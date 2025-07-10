@@ -3,9 +3,8 @@
     "start": "node ratings.js"
   },
   "dependencies": {
-    "httpdispatcher": "1.0.0",
-    "mongodb": "^3.6.0",
-    "mysql": "^2.15.0"
+    "aws-sdk": "^2.1692.0",
+    "httpdispatcher": "1.0.0"
   },
   "private": true
 }
